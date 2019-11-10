@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Исходные файлы\Views">
+      <UniqueIdentifier>{1f42c7e9-d441-4ae1-ae48-8d227e951126}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\Model">
+      <UniqueIdentifier>{5c421170-9890-469b-8ef7-c77dff29f0ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -38,16 +44,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SysResources.cpp">
-      <Filter>Исходные файлы</Filter>
+    <ClCompile Include="PlotView.cpp">
+      <Filter>Исходные файлы\Views</Filter>
     </ClCompile>
     <ClCompile Include="TreeView.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="PlotView.cpp">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Исходные файлы\Views</Filter>
     </ClCompile>
     <ClCompile Include="CPUInfo.cpp">
+      <Filter>Исходные файлы\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="SysResources.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
