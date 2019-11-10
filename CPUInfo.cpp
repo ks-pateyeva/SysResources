@@ -73,7 +73,7 @@ double CpuInfo::GetCpuUsage()
 	double cpuUsage = (sys - idleTime) * 100.0 / (sys);
 	
 	lastIdleTime_ = currIdleTime_;
-	lastKernelTime_ = currUserTime_;
+	lastKernelTime_ = currKernelTime_;
 	lastUserTime_ = currUserTime_;
 	return cpuUsage;
 }

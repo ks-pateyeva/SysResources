@@ -9,7 +9,6 @@ public:
 	static double GetCpuUsage();
 	static DWORD GetProcessorCount();
 	static void InitializeSystemTimes();
-	static DWORD GetProcessorCount();
 private:
 	static FILETIME currIdleTime_, lastIdleTime_;
 	static FILETIME currKernelTime_, lastKernelTime_;
