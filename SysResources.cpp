@@ -4,6 +4,7 @@
 #include "SysResources.h"
 #include "TreeView.h"
 #include "PlotView.h"
+#include  "CPUInfo.h"
 #include <windows.h>
 #include <objidl.h>
 #include <gdiplus.h>
@@ -17,6 +18,7 @@ using namespace Gdiplus;
 HINSTANCE hInst;
 WCHAR szTitle[MAX_LOADSTRING];
 WCHAR szWindowClass[MAX_LOADSTRING];
+bool isDrawing = false, isFirst = true;
 
 ATOM MyRegisterClass(HINSTANCE hInstance);
 BOOL InitInstance(HINSTANCE, int);
@@ -111,6 +113,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			treeView.CreateATreeView(hInst, hWnd);
 		}
 		break;
+	case WM_SHOWWINDOW:
+		{
+			SetTimer(hWnd, IDT_TIMER1, (UINT)1000, (TIMERPROC)NULL);
+		}
+		break;
 	case WM_COMMAND:
 		{
 			const int wmId = LOWORD(wParam);
@@ -127,16 +134,45 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 		}
 		break;
+	case WM_TIMER:
+		{
+			if (wParam == IDT_TIMER1)
+			{
+				if (isFirst)
+				{
+					CpuInfo::InitializeSystemTimes();
+					isFirst = false;
+				}
+				else {
+					isDrawing = true;
+					InvalidateRect(hWnd, NULL, false);
+				}
+			}
+			break;
+		}
 	case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hWnd, &ps);
-			PlotView::DrawPlot(hdc);
+
+
+			if (isDrawing)
+			{
+				Graphics graphics(hdc);
+				PlotView::PlotLine(graphics, PlotView::prevTime, PlotView::prevValue, PlotView::prevTime + 10.0,
+				                   CpuInfo::GetCpuUsage(), true);
+				isDrawing = false;
+			}
+			else
+			{
+				PlotView::DrawPlot(hdc);
+			}
 			EndPaint(hWnd, &ps);
 		}
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
+		KillTimer(hWnd, IDT_TIMER1);
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);

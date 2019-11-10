@@ -12,6 +12,7 @@
 #define IDI_SMALL                       108
 #define IDC_SYSRESOURCES                109
 #define IDR_MAINFRAME                   128
+#define IDT_TIMER1						129
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

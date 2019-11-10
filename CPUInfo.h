@@ -7,7 +7,7 @@ public:
 	CpuInfo();
 	static void GetProcessorName();
 	static double GetCpuUsage();
-
+	static DWORD GetProcessorCount();
 	static void InitializeSystemTimes();
 	static DWORD GetProcessorCount();
 private:
