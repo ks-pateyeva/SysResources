@@ -15,8 +15,8 @@ class PlotView
 {
 public:
 	static void DrawPlot(HDC hdc);
+	static void PlotLine(Graphics& g, float x1, float y1, float x2, float y2, bool fDiff);
+	static float prevTime, prevValue;
 private:
-	static int diff_x;
-	static void PlotLine(Graphics& g, Pen& p, float x1, float y1, float x2, float y2, bool fDiff);
 	static void PlotString(Graphics& g, float x1, float y1, PCWSTR text, int len);
 };
