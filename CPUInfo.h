@@ -1,7 +1,4 @@
 #pragma once
-#include <intrin.h>
-#include <memory.h>
-#include <iostream>
 #include <windows.h>
 
 class CpuInfo

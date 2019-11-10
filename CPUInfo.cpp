@@ -1,5 +1,6 @@
 #include "CPUInfo.h"
 #include <sysinfoapi.h>
+#include <intrin.h>
 
 FILETIME CpuInfo::currIdleTime_ = { 0,0 };
 FILETIME CpuInfo::lastIdleTime_ = { 0,0 };
