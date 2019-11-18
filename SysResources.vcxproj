@@ -154,6 +154,7 @@
     <ClInclude Include="CPUInfo.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="PlotView.h" />
+    <ClInclude Include="RAMInfo.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SysResources.h" />
     <ClInclude Include="targetver.h" />
@@ -162,6 +163,7 @@
   <ItemGroup>
     <ClCompile Include="CPUInfo.cpp" />
     <ClCompile Include="PlotView.cpp" />
+    <ClCompile Include="RAMInfo.cpp" />
     <ClCompile Include="SysResources.cpp" />
     <ClCompile Include="TreeView.cpp" />
   </ItemGroup>

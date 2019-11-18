@@ -42,6 +42,9 @@
     <ClInclude Include="CPUInfo.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="RAMInfo.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PlotView.cpp">
@@ -55,6 +58,9 @@
     </ClCompile>
     <ClCompile Include="SysResources.cpp">
       <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="RAMInfo.cpp">
+      <Filter>Исходные файлы\Model</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
