@@ -1,6 +1,8 @@
 #include "CPUInfo.h"
 #include <sysinfoapi.h>
 #include <intrin.h>
+#include <string>
+#include "strconvert.h"
 
 FILETIME CpuInfo::currIdleTime_ = { 0,0 };
 FILETIME CpuInfo::lastIdleTime_ = { 0,0 };
@@ -19,10 +21,17 @@ void CpuInfo::InitializeSystemTimes()
 	GetSystemTimes(&lastIdleTime_, &lastKernelTime_, &lastUserTime_);
 }
 
+std::wstring CpuInfo::GetCpuInfoText()
+{	
+	std::string s(GetProcessorName());
+	s += std::string("\nNumber of Cores: ") + std::to_string(GetProcessorCount());
+	std::wstring wstr = s2ws(s);
+	return wstr;
+}
+
 DWORD CpuInfo::GetProcessorCount()
 {
 	SYSTEM_INFO sysInfo;
-
 	GetSystemInfo(&sysInfo);
 	return sysInfo.dwNumberOfProcessors;
 }
@@ -36,7 +45,7 @@ ULONGLONG CpuInfo::FileTimeToUlonglong(FILETIME* ft)
 }
 
 
-void CpuInfo::GetProcessorName()
+std::string CpuInfo::GetProcessorName()
 {
 	int cpuInfo[4] = {-1};
 	char cpuBrandString[0x40];
@@ -57,10 +66,7 @@ void CpuInfo::GetProcessorName()
 		else if (i == 0x80000004)
 			memcpy(cpuBrandString + 32, cpuInfo, sizeof(cpuInfo));
 	}
-	//
-	// MEMORYSTATUSEX statex;
-	// GlobalMemoryStatusEx(&statex);
-	// std::cout << "Total System Memory: " << (statex.ullTotalPhys / 1024) / 1024 << "MB" << std::endl;
+	return std::string(cpuBrandString);
 }
 
 double CpuInfo::GetCpuUsage()
@@ -69,8 +75,8 @@ double CpuInfo::GetCpuUsage()
 	ULONGLONG userTime = FileTimeToUlonglong(&currUserTime_) - FileTimeToUlonglong(&lastUserTime_);
 	ULONGLONG kernelTime = FileTimeToUlonglong(&currKernelTime_) - FileTimeToUlonglong(&lastKernelTime_);
 	ULONGLONG idleTime = FileTimeToUlonglong(&currIdleTime_) - FileTimeToUlonglong(&lastIdleTime_);
-	ULONGLONG sys = kernelTime + userTime;
-	double cpuUsage = (sys - idleTime) * 100.0 / (sys);
+	ULONGLONG sysTime = kernelTime + userTime;
+	double cpuUsage = (sysTime - idleTime) * 100.0 / (sysTime);
 	
 	lastIdleTime_ = currIdleTime_;
 	lastKernelTime_ = currKernelTime_;

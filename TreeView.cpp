@@ -1,31 +1,45 @@
 #include "TreeView.h"
 #include "CPUInfo.h"
 #include <commctrl.h>
-#include <string>
 #include <atlconv.h>
+#include <tchar.h>
 
-#ifndef _UNICODE
-#define _UNICODE
-#endif
-
-TreeView::TreeView()
+TreeView::TreeView(HINSTANCE hInst, HWND parentHwnd)
 {
 	Heading heading;
-	heading.tchHeading = (TCHAR *)L"CPU";
+	HTreeView = CreateATreeView(hInst, parentHwnd);
+
+	heading.tchHeading = (LPTSTR)L"CPU";
 	heading.tchLevel = 0;
 	g_rgDocHeadings.push_back(heading);
-	DWORD coreCount = CpuInfo::GetProcessorCount();
-	heading.tchLevel = 1;
-	//for (int i = 0; i < coreCount; i++)
-	//{
-	////	 TODO fix Unicode trouble
-	//	std::wstring cpuStr(L"CPU ");
-	//	cpuStr += std::wstring(std::to_wstring(static_cast<int>(i)));
-	//	TCHAR* t = const_cast<wchar_t*>(cpuStr.c_str());
-	//	heading.tchHeading = t;
+	AddItemToTree(HTreeView, heading.tchHeading, heading.tchLevel);
 
-	//	g_rgDocHeadings.push_back(heading);
-	//}
+	heading.tchHeading = (LPTSTR)L"Memory";
+	g_rgDocHeadings.push_back(heading);
+	AddItemToTree(HTreeView, heading.tchHeading, heading.tchLevel);
+
+	heading.tchHeading = (LPTSTR)L"Disk";
+	g_rgDocHeadings.push_back(heading);
+	AddItemToTree(HTreeView, heading.tchHeading, heading.tchLevel);
+
+	heading.tchLevel = 1;
+	heading.tchHeading = (LPTSTR)L"  Write Speed";
+	g_rgDocHeadings.push_back(heading);
+	AddItemToTree(HTreeView, heading.tchHeading, heading.tchLevel);
+	
+	heading.tchHeading = (LPTSTR)L"  Read Speed";
+	g_rgDocHeadings.push_back(heading);
+	AddItemToTree(HTreeView, heading.tchHeading, heading.tchLevel);
+
+
+	heading.tchHeading = (LPTSTR)L"Wifi Send";
+	heading.tchLevel = 0;
+	g_rgDocHeadings.push_back(heading);
+	AddItemToTree(HTreeView, heading.tchHeading, heading.tchLevel);
+
+	heading.tchHeading = (LPTSTR)L"Wifi Receive";
+	g_rgDocHeadings.push_back(heading);
+	AddItemToTree(HTreeView, heading.tchHeading, heading.tchLevel);
 }
 
 HWND TreeView::CreateATreeView(HINSTANCE hInst, HWND hwndParent)
@@ -36,18 +50,18 @@ HWND TreeView::CreateATreeView(HINSTANCE hInst, HWND hwndParent)
 
 	HWND hwndTV; // handle to tree-view control 
 
-	hwndTV = CreateWindowEx(0,
-	                        WC_TREEVIEW,
-	                        TEXT("Tree View"),
-	                        WS_VISIBLE | WS_CHILD | WS_BORDER | TVS_HASLINES,
-	                        10,
-	                        10,
-	                        100,
-	                        250,
-	                        hwndParent,
-	                        (HMENU)ID_TREEVIEW,
-	                        hInst,
-	                        NULL);
+	hwndTV = CreateWindowExW(0,
+	                         WC_TREEVIEW,
+	                         TEXT("Tree View"),
+	                         WS_VISIBLE | WS_CHILD | WS_BORDER | TVS_HASLINES,
+	                         10,
+	                         10,
+	                         100,
+	                         250,
+	                         hwndParent,
+	                         (HMENU)ID_TREEVIEW,
+	                         hInst,
+	                         NULL);
 
 	if (!InitTreeViewItems(hwndTV))
 	{
@@ -127,4 +141,26 @@ BOOL TreeView::InitTreeViewItems(HWND hwndTV)
 	}
 
 	return TRUE;
+}
+
+INT TreeView::GetSelectedItem()
+{
+	HTREEITEM hSelectedItem = TreeView_GetSelection(HTreeView);
+	if (hSelectedItem == NULL) // Nothing selected
+		return -1;
+	// Now get the text of the selected item
+	TCHAR buffer[128];
+	TVITEM item;
+	item.hItem = hSelectedItem;
+	item.mask = TVIF_TEXT;
+	item.cchTextMax = 128;
+	item.pszText = buffer;
+	if (TreeView_GetItem(HTreeView, &item))
+	{
+		for (int i = 0; g_rgDocHeadings.size(); i++)
+		{
+			if (_tcscmp(buffer, g_rgDocHeadings[i].tchHeading) == 0)
+				return i;
+		}
+	}
 }

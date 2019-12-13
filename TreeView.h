@@ -15,10 +15,12 @@ typedef struct
 class TreeView
 {
 public:
-	TreeView();
+	HWND HTreeView;
+	INT GetSelectedItem();
+	TreeView(HINSTANCE hInst, HWND parentHwnd);
+private:
 	HWND CreateATreeView(HINSTANCE hInst, HWND hwndParent);
 	HTREEITEM AddItemToTree(HWND hwndTV, LPTSTR lpszItem, int nLevel);
-private:
 	std::vector<Heading> g_rgDocHeadings;
 	BOOL InitTreeViewItems(HWND hwndTV);
 };

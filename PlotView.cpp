@@ -3,31 +3,42 @@
 
 float PlotView::prevTime = 0;
 float PlotView::prevValue = 0;
+RECT PlotView::rect = {120, 10, 120 + 550, 10 + 550};
 
-void PlotView::DrawPlot(HDC hdc)
+void PlotView::DrawPlot(Graphics& graphics/*, float captionStep, float captionMax*/)
 {
-	Pen pen(Color(255, 0, 0, 0));
-	Graphics graphics(hdc);
-	graphics.DrawRectangle(&pen, 120, 10, 550, 550);
 
+	Pen pen(Color(255, 0, 0, 0));
+	Color const whiteColor(255, 255, 255);
+	Brush *whiteBrush = new SolidBrush (whiteColor);
+	graphics.FillRectangle(whiteBrush, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+	graphics.DrawRectangle(&pen, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+	
 	// AXIS   
-	PlotLine(graphics, 0, 0.0, 0, 100.0, false);
-	PlotLine(graphics, 0.0, 0.0, 100.0, 0.0, false);
+	Line(graphics, 0, 0.0, 0, 100.0, false);
+	Line(graphics, 0.0, 0.0, 100.0, 0.0, false);
 
 	for (float i = 10.0; i <= 100.0; i += 10.0)
 	{
-		PlotLine(graphics, 0.0, i, -1, i, false);
+		Line(graphics, 0.0, i, -1, i, false);
 		PlotString(graphics, (i == 100.0 ? -6.0f : -5.0f), i,
 		           (PCWSTR)std::to_wstring(static_cast<int>(i)).c_str(), 3);
 	}
 }
 
-void PlotView::PlotLine(Graphics& g, float x1, float y1, float x2, float y2, bool fDiff)
+void PlotView::Line(Graphics& g, float x1, float y1, float x2, float y2, bool fDiff)
 {
 	Pen pen(Color(255, 0, 0, 0));
 
+	if (x1 >= MAX_X)
+	{
+		x1 -= MAX_X;
+		x2 -= MAX_X;
 
-	if ((!fDiff))
+		DrawPlot(g);
+	}
+
+	if (!fDiff)
 	{
 		x1 = CENTER_X + x1 * SCALE_X;
 		x2 = CENTER_X + x2 * SCALE_X;
@@ -35,7 +46,7 @@ void PlotView::PlotLine(Graphics& g, float x1, float y1, float x2, float y2, boo
 		y2 = CENTER_Y - y2 * SCALE_Y;
 		g.DrawLine(&pen, x1, y1, x2, y2);
 	}
-	if (fDiff)
+	else
 	{
 		prevTime = x2;
 		prevValue = y2;

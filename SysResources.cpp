@@ -6,19 +6,28 @@
 #include "PlotView.h"
 #include  "CPUInfo.h"
 #include <windows.h>
-#include <objidl.h>
 #include <gdiplus.h>
 #include <string>
+#include "RAMInfo.h"
+#include "WiFiInfo.h"
+#include "DiskInfo.h"
 
 using namespace Gdiplus;
 #pragma comment (lib,"Gdiplus.lib")
 
 #define MAX_LOADSTRING 100
 
+enum MonitorState { CPU, RAM, DISK, DISK_WRITE, DISK_READ, WIFI_SEND, WIFI_RECEIVE};
+
 HINSTANCE hInst;
 WCHAR szTitle[MAX_LOADSTRING];
 WCHAR szWindowClass[MAX_LOADSTRING];
+HWND hwndEdit;
+TreeView* treeView;
+MonitorState state = CPU;
+
 bool isDrawing = false, isFirst = true;
+
 
 ATOM MyRegisterClass(HINSTANCE hInstance);
 BOOL InitInstance(HINSTANCE, int);
@@ -109,13 +118,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 		{
-			TreeView treeView;
-			treeView.CreateATreeView(hInst, hWnd);
+			treeView = new TreeView(hInst, hWnd);
+			hwndEdit = CreateWindowEx(
+				0, L"EDIT", // predefined class 
+				NULL, // no window title 
+				WS_CHILD | WS_VISIBLE |
+				ES_LEFT | ES_MULTILINE,
+				10, 270, 100, 300, // set size in WM_SIZE message 
+				hWnd, // parent window 
+				(HMENU)ID_EDITCHILD, // edit control ID 
+				(HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE),
+				NULL);
+			SendMessage(hwndEdit, EM_SETREADONLY, TRUE, NULL);
+			SetTimer(hWnd, IDT_TIMER1, (UINT)1000, (TIMERPROC)NULL);
 		}
 		break;
-	case WM_SHOWWINDOW:
+	case WM_NOTIFY:
 		{
-			SetTimer(hWnd, IDT_TIMER1, (UINT)1000, (TIMERPROC)NULL);
+			switch (((LPNMHDR)lParam)->code)
+			{
+			case TVN_SELCHANGED:
+				UINT treeViewId = GetDlgCtrlID(treeView->HTreeView);
+				if (((LPNMHDR)lParam)->idFrom == treeViewId)
+				{
+					isFirst = true;
+					state = (MonitorState)treeView->GetSelectedItem();
+					return TRUE;
+				}
+				break;
+			}
 		}
 		break;
 	case WM_COMMAND:
@@ -140,13 +171,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				if (isFirst)
 				{
-					CpuInfo::InitializeSystemTimes();
+					switch (state)
+					{
+					case CPU:
+						CpuInfo::InitializeSystemTimes();
+						PlotView::prevValue = CpuInfo::GetCpuUsage();
+						SetWindowText(hwndEdit, CpuInfo::GetCpuInfoText().c_str());
+						break;
+					case RAM:
+						PlotView::prevValue = RAMInfo::GetRamUsage();
+						SetWindowText(hwndEdit, RAMInfo::GetRamInfoText().c_str());
+						break;
+					case WIFI_RECEIVE:
+						PlotView::prevValue = WiFiInfo::GetSpeed(L"BytesReceivedPerSec");
+						SetWindowText(hwndEdit, WiFiInfo::GetNetworkAdapterCaption().c_str());
+						break;
+					case WIFI_SEND:
+						PlotView::prevValue = WiFiInfo::GetSpeed(L"BytesSentPerSec");
+						SetWindowText(hwndEdit, WiFiInfo::GetNetworkAdapterCaption().c_str());
+						break;
+					case DISK:
+						PlotView::prevValue = DiskInfo::GetDiskUsage();
+						SetWindowText(hwndEdit, DiskInfo::GetDiskDriveCaption().c_str());
+						break;
+					case DISK_WRITE:
+						PlotView::prevValue = DiskInfo::GetDiskSpeed(L"DiskWriteBytesPerSec");
+						SetWindowText(hwndEdit, DiskInfo::GetDiskDriveCaption().c_str());
+						break;
+					case DISK_READ:
+						PlotView::prevValue = DiskInfo::GetDiskSpeed(L"DiskReadBytesPerSec");
+						SetWindowText(hwndEdit, DiskInfo::GetDiskDriveCaption().c_str());
+						break;
+					}
+					PlotView::prevTime = 0;
 					isFirst = false;
+					isDrawing = false;
 				}
-				else {
+				else
+				{
 					isDrawing = true;
-					InvalidateRect(hWnd, NULL, false);
 				}
+				InvalidateRect(hWnd, &(PlotView::rect), false);
 			}
 			break;
 		}
@@ -154,18 +219,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hWnd, &ps);
-
-
+			Graphics graphics(hdc);
 			if (isDrawing)
 			{
-				Graphics graphics(hdc);
-				PlotView::PlotLine(graphics, PlotView::prevTime, PlotView::prevValue, PlotView::prevTime + 10.0,
-				                   CpuInfo::GetCpuUsage(), true);
+				double currValue = 0.0;
+				switch (state)
+				{
+				case CPU:
+					currValue = CpuInfo::GetCpuUsage();
+					break;
+				case RAM:
+					currValue = RAMInfo::GetRamUsage();
+					break;
+				case DISK:
+					currValue = DiskInfo::GetDiskUsage();
+					break;
+				case DISK_WRITE:
+					currValue = DiskInfo::GetDiskSpeed(L"DiskWriteBytesPerSec");
+					break;
+				case DISK_READ:
+					currValue = DiskInfo::GetDiskSpeed(L"DiskReadBytesPerSec");
+					break;
+				case WIFI_RECEIVE:
+					currValue = WiFiInfo::GetSpeed(L"BytesReceivedPerSec");
+					break;
+				case WIFI_SEND:
+					currValue = WiFiInfo::GetSpeed(L"BytesSentPerSec");
+					break;
+				}
+				PlotView::Line(graphics, PlotView::prevTime, PlotView::prevValue,
+				               PlotView::prevTime + 10.0, currValue, true);
 				isDrawing = false;
 			}
 			else
 			{
-				PlotView::DrawPlot(hdc);
+				PlotView::DrawPlot(graphics);
 			}
 			EndPaint(hWnd, &ps);
 		}
